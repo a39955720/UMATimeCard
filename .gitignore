@@ -1,0 +1,6 @@
+.env
+foundry/broadcast
+foundry/cache
+foundry/out
+foundry/coverage.txt
+text.txt
