@@ -2,21 +2,22 @@
 
 pragma solidity ^0.8.16;
 
-import "@protocol/packages/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
-import "@protocol/packages/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
+import {ClaimData} from "@protocol/packages/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
+import {OptimisticOracleV3Interface} from "@protocol/packages/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Custom error messages
 error UMATimeCard__YouShouldCheckInFirst();
 error UMATimeCard__YouShouldCheckOutFirst();
 
 contract UMATimeCard {
+    using SafeERC20 for IERC20;
+
     // Create an Optimistic Oracle V3 instance at the deployed address on Görli.
-    OptimisticOracleV3Interface private constant OOV3 =
-        OptimisticOracleV3Interface(0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB);
+    OptimisticOracleV3Interface private immutable i_oov3;
 
     // Reference to the default currency (ERC20 token)
-    IERC20 public constant DEFAULTCURRENCY =
-        IERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
+    IERC20 public immutable i_defaultCurrency;
 
     // Struct to store check-in/check-out data
     struct CheckInOutData {
@@ -33,6 +34,11 @@ contract UMATimeCard {
     mapping(address => bool) private s_checkInLock;
     mapping(address => bool) private s_checkOutLock;
 
+    constructor(address _defaultCurrency, address _optimisticOracleV3) {
+        i_defaultCurrency = IERC20(_defaultCurrency);
+        i_oov3 = OptimisticOracleV3Interface(_optimisticOracleV3);
+    }
+
     // Function to perform check-in
     function checkIn(uint256 _timestamp, address _msgSender) public {
         // Check if the check-in lock is enabled, indicating that check-out should be performed first
@@ -40,11 +46,15 @@ contract UMATimeCard {
             revert UMATimeCard__YouShouldCheckOutFirst();
         }
 
+        uint256 bond = i_oov3.getMinimumBond(address(i_defaultCurrency));
+        i_defaultCurrency.safeTransferFrom(msg.sender, address(this), bond);
+        i_defaultCurrency.safeApprove(address(i_oov3), bond);
+
         // If there are previous check-out data for the employee, settle the corresponding assertion
         if (s_checkOutData[_msgSender].length > 0) {
             uint256 index = s_checkOutData[_msgSender].length - 1;
             if (s_checkOutData[_msgSender][index].isDispute == false) {
-                OOV3.settleAndGetAssertionResult(
+                i_oov3.settleAndGetAssertionResult(
                     s_checkOutData[_msgSender][index].assertionId
                 );
             }
@@ -62,15 +72,15 @@ contract UMATimeCard {
         );
 
         // Create a new assertion for the check-in data
-        bytes32 _assertionId = OOV3.assertTruth(
+        bytes32 _assertionId = i_oov3.assertTruth(
             checkInMessage,
             address(this),
             address(this),
             address(0),
             120,
-            DEFAULTCURRENCY,
-            0,
-            OOV3.defaultIdentifier(),
+            i_defaultCurrency,
+            bond,
+            i_oov3.defaultIdentifier(),
             bytes32(0)
         );
 
@@ -95,10 +105,14 @@ contract UMATimeCard {
             revert UMATimeCard__YouShouldCheckInFirst();
         }
 
+        uint256 bond = i_oov3.getMinimumBond(address(i_defaultCurrency));
+        i_defaultCurrency.safeTransferFrom(msg.sender, address(this), bond);
+        i_defaultCurrency.safeApprove(address(i_oov3), bond);
+
         // If there are previous check-in data for the employee, settle the corresponding assertion
         uint256 index = s_checkInData[_msgSender].length - 1;
         if (s_checkInData[_msgSender][index].isDispute == false) {
-            OOV3.settleAndGetAssertionResult(
+            i_oov3.settleAndGetAssertionResult(
                 s_checkInData[_msgSender][index].assertionId
             );
         }
@@ -115,15 +129,15 @@ contract UMATimeCard {
         );
 
         // Create a new assertion for the check-out data
-        bytes32 _assertionId = OOV3.assertTruth(
+        bytes32 _assertionId = i_oov3.assertTruth(
             checkOutMessage,
             address(this),
             address(this),
             address(0),
             120,
-            DEFAULTCURRENCY,
-            0,
-            OOV3.defaultIdentifier(),
+            i_defaultCurrency,
+            bond,
+            i_oov3.defaultIdentifier(),
             bytes32(0)
         );
 
@@ -143,28 +157,28 @@ contract UMATimeCard {
         bytes32 assertionId,
         bool assertedTruthfully
     ) public {
-        require(msg.sender == address(OOV3));
+        require(msg.sender == address(i_oov3));
+
+        if (!assertedTruthfully) {
+            // Get the employee associated with the disputed assertionId
+            address employee = s_assertionIdToEmployee[assertionId];
+
+            if (s_checkInLock[employee] == true) {
+                // If the check-in lock is enabled, mark the corresponding check-in data as disputed
+                uint256 index = s_checkInData[employee].length - 1;
+                s_checkInData[employee][index].timestamp = 0;
+                s_checkInData[employee][index].isDispute = true;
+            } else {
+                // If the check-out lock is enabled, mark the corresponding check-out data as disputed
+                uint256 index = s_checkOutData[employee].length - 1;
+                s_checkOutData[employee][index].timestamp = 0;
+                s_checkOutData[employee][index].isDispute = true;
+            }
+        }
     }
 
     // Callback function called when an assertion is disputed
-    function assertionDisputedCallback(bytes32 assertionId) public {
-        require(msg.sender == address(OOV3));
-
-        // Get the employee associated with the disputed assertionId
-        address employee = s_assertionIdToEmployee[assertionId];
-
-        if (s_checkInLock[employee] == true) {
-            // If the check-in lock is enabled, mark the corresponding check-in data as disputed
-            uint256 index = s_checkInData[employee].length - 1;
-            s_checkInData[employee][index].timestamp = 0;
-            s_checkInData[employee][index].isDispute = true;
-        } else {
-            // If the check-out lock is enabled, mark the corresponding check-out data as disputed
-            uint256 index = s_checkOutData[employee].length - 1;
-            s_checkOutData[employee][index].timestamp = 0;
-            s_checkOutData[employee][index].isDispute = true;
-        }
-    }
+    function assertionDisputedCallback(bytes32 assertionId) public {}
 
     ////////////////////////////
     ////////Get Function///////
@@ -173,14 +187,18 @@ contract UMATimeCard {
     function getCheckInOutResult(
         bytes32 _assertionId
     ) public view returns (bool) {
-        return OOV3.getAssertionResult(_assertionId);
+        return i_oov3.getAssertionResult(_assertionId);
     }
 
-    function getCheckInData() public view returns (CheckInOutData[] memory) {
-        return s_checkInData[msg.sender];
+    function getCheckInData(
+        address employee
+    ) public view returns (CheckInOutData[] memory) {
+        return s_checkInData[employee];
     }
 
-    function getCheckOutData() public view returns (CheckInOutData[] memory) {
-        return s_checkOutData[msg.sender];
+    function getCheckOutData(
+        address employee
+    ) public view returns (CheckInOutData[] memory) {
+        return s_checkOutData[employee];
     }
 }
