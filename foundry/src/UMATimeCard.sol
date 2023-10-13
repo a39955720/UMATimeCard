@@ -5,12 +5,14 @@ pragma solidity ^0.8.16;
 import {ClaimData} from "@protocol/packages/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 import {OptimisticOracleV3Interface} from "@protocol/packages/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {NonblockingLzApp, Ownable} from "@LayerZero/contracts/lzApp/NonblockingLzApp.sol";
 
 // Custom error messages
 error UMATimeCard__YouShouldCheckInFirst();
 error UMATimeCard__YouShouldCheckOutFirst();
+error UMATimeCard__YouCantCallThisFunction();
 
-contract UMATimeCard {
+contract UMATimeCard is NonblockingLzApp {
     using SafeERC20 for IERC20;
 
     // Create an Optimistic Oracle V3 instance at the deployed address on Görli.
@@ -26,6 +28,8 @@ contract UMATimeCard {
         bool isDispute;
     }
 
+    address immutable i_lzEndpoint;
+
     mapping(bytes32 => address) private s_assertionIdToEmployee;
 
     mapping(address => CheckInOutData[]) private s_checkInData;
@@ -34,9 +38,14 @@ contract UMATimeCard {
     mapping(address => bool) private s_checkInLock;
     mapping(address => bool) private s_checkOutLock;
 
-    constructor(address _defaultCurrency, address _optimisticOracleV3) {
+    constructor(
+        address _defaultCurrency,
+        address _optimisticOracleV3,
+        address _lzEndpoint
+    ) NonblockingLzApp(_lzEndpoint) Ownable() {
         i_defaultCurrency = IERC20(_defaultCurrency);
         i_oov3 = OptimisticOracleV3Interface(_optimisticOracleV3);
+        i_lzEndpoint = _lzEndpoint;
     }
 
     // Function to perform check-in
@@ -44,6 +53,10 @@ contract UMATimeCard {
         // Check if the check-in lock is enabled, indicating that check-out should be performed first
         if (s_checkInLock[_msgSender] == true) {
             revert UMATimeCard__YouShouldCheckOutFirst();
+        }
+
+        if (msg.sender != address(this)) {
+            revert UMATimeCard__YouCantCallThisFunction();
         }
 
         uint256 bond = i_oov3.getMinimumBond(address(i_defaultCurrency));
@@ -103,6 +116,10 @@ contract UMATimeCard {
             s_checkInData[_msgSender].length == 0
         ) {
             revert UMATimeCard__YouShouldCheckInFirst();
+        }
+
+        if (msg.sender != address(this)) {
+            revert UMATimeCard__YouCantCallThisFunction();
         }
 
         uint256 bond = i_oov3.getMinimumBond(address(i_defaultCurrency));
@@ -179,6 +196,24 @@ contract UMATimeCard {
 
     // Callback function called when an assertion is disputed
     function assertionDisputedCallback(bytes32 assertionId) public {}
+
+    function _nonblockingLzReceive(
+        uint16,
+        bytes memory,
+        uint64,
+        bytes memory _payload
+    ) internal override {
+        (uint16 _message1, uint256 _message2, address _message3) = abi.decode(
+            _payload,
+            (uint16, uint256, address)
+        );
+
+        if (_message1 == 0) {
+            checkIn(_message2, _message3);
+        } else if (_message1 == 1) {
+            checkOut(_message2, _message3);
+        }
+    }
 
     ////////////////////////////
     ////////Get Function///////

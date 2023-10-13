@@ -3,6 +3,6 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
-remappings = ['@openzeppelin/contracts=lib/protocol/node_modules/@openzeppelin/contracts','@protocol=lib/protocol']
+remappings = ['@openzeppelin/contracts=lib/protocol/node_modules/@openzeppelin/contracts','@protocol=lib/protocol','@LayerZero=lib/solidity-examples']
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

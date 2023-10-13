@@ -3,4 +3,6 @@ foundry/broadcast
 foundry/cache
 foundry/out
 foundry/coverage.txt
+nextJs/node_modules
+nextJs/.next/
 text.txt

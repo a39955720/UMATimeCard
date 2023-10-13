@@ -1,3 +1,9 @@
 [submodule "foundry/lib/protocol"]
 	path = foundry/lib/protocol
 	url = https://github.com/UMAprotocol/protocol
+[submodule "foundry/lib/openzeppelin-contracts"]
+	path = foundry/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "foundry/lib/solidity-examples"]
+	path = foundry/lib/solidity-examples
+	url = https://github.com/LayerZero-Labs/solidity-examples

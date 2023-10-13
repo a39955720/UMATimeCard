@@ -11,7 +11,8 @@ contract DeployUMATimeCard is Script {
         vm.startBroadcast(deployerKey);
         UMATimeCard umaTimeCard = new UMATimeCard(
             0x07865c6E87B9F70255377e024ace6630C1Eaa37F,
-            0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB
+            0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB,
+            0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23
         );
         vm.stopBroadcast();
 
