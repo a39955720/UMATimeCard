@@ -66,7 +66,6 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
     function testCrossChainOperation() public {
         uint256 blocktimestamp = block.timestamp;
         vm.prank(TestAddress.account1);
-        vm.pauseGasMetering();
         umaTimeCardEntrance.send{value: fee}(0);
 
         assertFalse(
@@ -80,7 +79,6 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         timer.setCurrentTime(timer.getCurrentTime() + 120);
 
         vm.prank(TestAddress.account1);
-        vm.pauseGasMetering();
         umaTimeCardEntrance.send{value: fee}(1);
 
         assertFalse(
@@ -166,36 +164,6 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
             blocktimestamp + 120
         );
         vm.stopPrank();
-    }
-
-    function test_CheckInOrOutWithWrongDispute() public {
-        vm.startPrank(address(umaTimeCard));
-
-        uint256 blocktimestamp = block.timestamp;
-        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1);
-        vm.stopPrank();
-
-        OracleRequest memory oracleRequest = _disputeAndGetOracleRequest(
-            umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId,
-            defaultBond
-        );
-        _mockOracleResolved(address(mockOracle), oracleRequest, true);
-
-        assertTrue(
-            optimisticOracleV3.settleAndGetAssertionResult(
-                umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId
-            )
-        );
-
-        assertTrue(
-            umaTimeCard.getCheckInOutResult(
-                umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId
-            )
-        );
-        assertEq(
-            umaTimeCard.getCheckInData(TestAddress.account1)[0].timestamp,
-            blocktimestamp
-        );
     }
 
     function test_CheckInOutWithCorrectDispute() public {

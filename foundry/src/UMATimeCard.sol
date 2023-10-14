@@ -173,30 +173,29 @@ contract UMATimeCard is NonblockingLzApp {
     function assertionResolvedCallback(
         bytes32 assertionId,
         bool assertedTruthfully
-    ) public {
+    ) public {}
+
+    // Callback function called when an assertion is disputed
+    function assertionDisputedCallback(bytes32 assertionId) public {
         require(msg.sender == address(i_oov3));
 
-        if (!assertedTruthfully) {
-            // Get the employee associated with the disputed assertionId
-            address employee = s_assertionIdToEmployee[assertionId];
+        // Get the employee associated with the disputed assertionId
+        address employee = s_assertionIdToEmployee[assertionId];
 
-            if (s_checkInLock[employee] == true) {
-                // If the check-in lock is enabled, mark the corresponding check-in data as disputed
-                uint256 index = s_checkInData[employee].length - 1;
-                s_checkInData[employee][index].timestamp = 0;
-                s_checkInData[employee][index].isDispute = true;
-            } else {
-                // If the check-out lock is enabled, mark the corresponding check-out data as disputed
-                uint256 index = s_checkOutData[employee].length - 1;
-                s_checkOutData[employee][index].timestamp = 0;
-                s_checkOutData[employee][index].isDispute = true;
-            }
+        if (s_checkInLock[employee] == true) {
+            // If the check-in lock is enabled, mark the corresponding check-in data as disputed
+            uint256 index = s_checkInData[employee].length - 1;
+            s_checkInData[employee][index].timestamp = 0;
+            s_checkInData[employee][index].isDispute = true;
+        } else {
+            // If the check-out lock is enabled, mark the corresponding check-out data as disputed
+            uint256 index = s_checkOutData[employee].length - 1;
+            s_checkOutData[employee][index].timestamp = 0;
+            s_checkOutData[employee][index].isDispute = true;
         }
     }
 
-    // Callback function called when an assertion is disputed
-    function assertionDisputedCallback(bytes32 assertionId) public {}
-
+    // This function handles the received payload from LayerZero and triggers the appropriate check-in or check-out function based on the message type.
     function _nonblockingLzReceive(
         uint16,
         bytes memory,
