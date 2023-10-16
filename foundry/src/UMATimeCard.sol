@@ -55,6 +55,7 @@ contract UMATimeCard is NonblockingLzApp {
             revert UMATimeCard__YouShouldCheckOutFirst();
         }
 
+        // For test
         if (msg.sender != address(this)) {
             revert UMATimeCard__YouCantCallThisFunction();
         }
@@ -118,6 +119,7 @@ contract UMATimeCard is NonblockingLzApp {
             revert UMATimeCard__YouShouldCheckInFirst();
         }
 
+        // For test
         if (msg.sender != address(this)) {
             revert UMATimeCard__YouCantCallThisFunction();
         }

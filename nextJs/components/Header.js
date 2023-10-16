@@ -3,7 +3,7 @@ import Link from "next/link"
 
 export default function Header() {
     return (
-        <nav className="p-5 border-b-10 flex flex-row justify-between items-center bg-blue-800">
+        <nav className="p-5 border-b-10 flex flex-row justify-between items-center bg-red-600">
             <div className="flex items-center">
                 <h1 className="font-orbitron py-4 px-4 font-bold text-4xl ml-10">UMATimeCard</h1>
             </div>

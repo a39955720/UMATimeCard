@@ -35,7 +35,7 @@ export default function Clock() {
     }
 
     return (
-        <div className="bg-blue-300 flex flex-col min-h-screen">
+        <div>
             <style jsx>{`
                 * {
                     color: black;
@@ -46,7 +46,7 @@ export default function Clock() {
                 #clock {
                     font-size: 80px;
                     text-align: center;
-                    padding-top: 250px;
+                    padding-top: 50px;
                     padding-bottom: 40px;
                 }
 

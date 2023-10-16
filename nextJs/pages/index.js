@@ -1,7 +1,6 @@
 import Head from "next/head"
-import Image from "next/image"
 import Header from "../components/Header"
-import Clock from "../components/Clock"
+import Dashboard from "../components/Dashboard"
 
 export default function Home() {
     return (
@@ -12,7 +11,7 @@ export default function Home() {
                 <link rel="icon" href="/logo1.png" />
             </Head>
             <Header />
-            <Clock />
+            <Dashboard />
         </div>
     )
 }
