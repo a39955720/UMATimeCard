@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { useNotification } from "web3uikit"
-import { ethers, BigNumber } from "ethers"
+import { ethers } from "ethers"
 import { UMATimeCardEntranceAbi } from "../constants"
+import { createClient } from "@layerzerolabs/scan-client"
 import Clock from "./Clock"
 
 export default function Dashboard() {
@@ -10,8 +11,21 @@ export default function Dashboard() {
     const chainId = parseInt(chainIdHex)
     const [fees, setFees] = useState("0")
     const [checkInOrOut, setcheckInOrOut] = useState("0")
+    const [error, setError] = useState()
+    const [showModal, setShowModal] = useState(false)
+    const [isDelivered, setDelivered] = useState(false)
+    const [_message, setMessage] = useState("0")
+    const [txHash, setTxHash] = useState("0")
     const dispatch = useNotification()
+    const client = createClient("testnet")
     const umaTimeCardEntranceAddr = "0x756C2eE52b51bEABD62f9D4ead9631829820E54A"
+
+    const networks = {
+        mantle: {
+            chainId: `0x${Number(5001).toString(16)}`,
+            rpcUrls: ["https://rpc.testnet.mantle.xyz"],
+        },
+    }
 
     const {
         runContractFunction: send,
@@ -35,8 +49,29 @@ export default function Dashboard() {
         },
     })
 
+    const changeNetwork = async ({ networkName, setError }) => {
+        try {
+            if (!window.ethereum) throw new Error("No crypto wallet found")
+            await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [
+                    {
+                        ...networks[networkName],
+                    },
+                ],
+            })
+        } catch (err) {
+            setError(err.message)
+            console.log(error)
+        }
+    }
+
+    const handleNetworkSwitch = async (networkName) => {
+        setError()
+        await changeNetwork({ networkName, setError })
+    }
+
     const _checkIn = async function () {
-        console.log(chainId)
         setcheckInOrOut(0)
         await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
@@ -46,19 +81,21 @@ export default function Dashboard() {
         await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
 
-    const handleSuccess = async function (tx, str) {
+    const handleSuccess = async function (tx) {
         await tx.wait("1")
+        setTxHash(tx.hash)
         handleNewNotification(tx)
+        setShowModal(true)
     }
 
     const handleError = async function (error) {
         console.log(error)
     }
 
-    const handleNewNotification = () => {
+    const handleNewNotification = (tx) => {
         dispatch({
             type: "info",
-            message: "Transaction Complete!",
+            message: tx.hash,
             title: "Transaction Notification",
             position: "topR",
             icon: "bell",
@@ -66,9 +103,17 @@ export default function Dashboard() {
     }
 
     async function updateUI() {
+        // console.log(txHash)
+
         try {
             const estimateFeesCall = (await estimateFees())[0]?.toString()
             setFees(estimateFeesCall)
+            const { messages } = await client.getMessagesBySrcTxHash(txHash)
+            setMessage(messages[0])
+            console.log(_message.status)
+            if (_message.status == "DELIVERED") {
+                setDelivered(true)
+            }
         } catch (e) {}
     }
 
@@ -78,7 +123,7 @@ export default function Dashboard() {
         return () => {
             clearInterval(interval)
         }
-    }, [isWeb3Enabled, account])
+    }, [isWeb3Enabled, account, txHash, _message])
 
     return (
         <div className="bg-gradient-to-br from-yellow-500 to-purple-500 flex flex-col min-h-screen">
@@ -111,11 +156,74 @@ export default function Dashboard() {
                                 <span className="text-4xl font-orbitron text-black">Check Out</span>
                             )}
                         </button>
+                        {showModal && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                <div className="bg-green-400 p-5 rounded w-2/3 h-1/2">
+                                    <div className="flex mt-10 flex-grow justify-between">
+                                        <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full ml-5 mr-10 break-words">
+                                            Transaction successful
+                                        </span>
+                                        <div class="flex items-center">
+                                            <div class="w-4 h-4 bg-transparent border-t-2 border-r-2 border-solid border-gray-500 transform rotate-45"></div>
+                                        </div>
+
+                                        {isDelivered ? (
+                                            <div className="flex flex-grow justify-between">
+                                                <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full ml-10 mr-10 break-words">
+                                                    In flight...
+                                                </span>
+                                                <div class="flex items-center">
+                                                    <div class="w-4 h-4 bg-transparent border-t-2 border-r-2 border-solid border-gray-500 transform rotate-45"></div>
+                                                </div>
+                                                <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full ml-10 break-words">
+                                                    Delivered
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-grow">
+                                                <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full shadow-md animate-pulse ml-10 mr-10 break-words">
+                                                    Pending...
+                                                </span>
+                                                <div class="flex items-center">
+                                                    <div class="w-4 h-4 bg-transparent border-t-2 border-r-2 border-solid border-gray-500 transform rotate-45"></div>
+                                                </div>
+                                                <span className="bg-gray-400 text-white font-bold py-8 px-16 rounded-full ml-10 break-words">
+                                                    Delivered
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex mt-20 justify-center">
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                            onClick={() => {
+                                                setShowModal(false)
+                                                setDelivered(false)
+                                                setTxHash(0)
+                                                setMessage(0)
+                                            }}
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <Clock />
                 </>
             ) : (
-                <div className="ml-10 text-xl">Please connect to a wallet and switch to the Mentle test network. </div>
+                <div className="flex flex-col items-start mt-10">
+                    <div className="ml-10 text-xl">
+                        Please connect to a wallet and switch to the Mentle test network.
+                    </div>
+                    <button
+                        onClick={() => handleNetworkSwitch("mantle")}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-10 mt-10"
+                    >
+                        Switch to Mantle testnet
+                    </button>
+                </div>
             )}
         </div>
     )
