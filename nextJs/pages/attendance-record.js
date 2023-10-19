@@ -1,16 +1,16 @@
 import Head from "next/head"
 import Header from "../components/Header"
-import Dashboard from "../components/Dashboard"
+import AttendanceRecord from "../components/AttendanceRecord"
 
 export default function Home() {
     return (
-        <div>
+        <div className="bg-yellow-400 flex-col min-h-screen">
             <Head>
                 <title>UMA Time Card</title>
-                <meta name="description" content="A UMA Time Card project" />
+                <meta name="description" content="Display attendance record" />
             </Head>
             <Header />
-            <Dashboard />
+            <AttendanceRecord />
         </div>
     )
 }

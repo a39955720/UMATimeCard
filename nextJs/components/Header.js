@@ -13,11 +13,11 @@ export default function Header() {
                         Dashboard
                     </a>
                 </Link>
-                {/* <Link href="/your-nft" legacyBehavior>
+                <Link href="/attendance-record" legacyBehavior>
                     <a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mr-4 px-4 rounded ml-auto">
-                        Your NFT
+                        Attendance record
                     </a>
-                </Link> */}
+                </Link>
                 <ConnectButton moralisAuth={false} />
             </div>
         </nav>

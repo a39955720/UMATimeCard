@@ -4,13 +4,14 @@ import { useNotification } from "web3uikit"
 import { ethers } from "ethers"
 import { UMATimeCardEntranceAbi } from "../constants"
 import { createClient } from "@layerzerolabs/scan-client"
+import Link from "next/link"
 import Clock from "./Clock"
 
 export default function Dashboard() {
     const { isWeb3Enabled, chainId: chainIdHex, account } = useMoralis()
     const chainId = parseInt(chainIdHex)
     const [fees, setFees] = useState("0")
-    const [checkInOrOut, setcheckInOrOut] = useState("0")
+    const [checkInOrOut, setCheckInOrOut] = useState("0")
     const [error, setError] = useState()
     const [showModal, setShowModal] = useState(false)
     const [isDelivered, setDelivered] = useState(false)
@@ -72,12 +73,12 @@ export default function Dashboard() {
     }
 
     const _checkIn = async function () {
-        setcheckInOrOut(0)
+        setCheckInOrOut(0)
         await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
 
     const _checkOut = async function () {
-        setcheckInOrOut(1)
+        setCheckInOrOut(1)
         await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
 
@@ -103,14 +104,11 @@ export default function Dashboard() {
     }
 
     async function updateUI() {
-        // console.log(txHash)
-
         try {
             const estimateFeesCall = (await estimateFees())[0]?.toString()
             setFees(estimateFeesCall)
             const { messages } = await client.getMessagesBySrcTxHash(txHash)
             setMessage(messages[0])
-            console.log(_message.status)
             if (_message.status == "DELIVERED") {
                 setDelivered(true)
             }
@@ -166,7 +164,6 @@ export default function Dashboard() {
                                         <div class="flex items-center">
                                             <div class="w-4 h-4 bg-transparent border-t-2 border-r-2 border-solid border-gray-500 transform rotate-45"></div>
                                         </div>
-
                                         {isDelivered ? (
                                             <div className="flex flex-grow justify-between">
                                                 <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full ml-10 mr-10 break-words">
@@ -182,7 +179,7 @@ export default function Dashboard() {
                                         ) : (
                                             <div className="flex flex-grow">
                                                 <span className="bg-blue-600 text-white font-bold py-8 px-16 rounded-full shadow-md animate-pulse ml-10 mr-10 break-words">
-                                                    Pending...
+                                                    Sending message to Goerli...
                                                 </span>
                                                 <div class="flex items-center">
                                                     <div class="w-4 h-4 bg-transparent border-t-2 border-r-2 border-solid border-gray-500 transform rotate-45"></div>
@@ -193,7 +190,18 @@ export default function Dashboard() {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex mt-20 justify-center">
+                                    <div className="text-lg mt-10 ml-10">
+                                        Transaction hash:{" "}
+                                        {_message && (
+                                            <Link
+                                                legacyBehavior
+                                                href={`https://testnet.layerzeroscan.com/${_message.srcChainId}/address/${_message.srcUaAddress}/message/${_message.dstChainId}/address/${_message.dstUaAddress}/nonce/${_message.srcUaNonce}`}
+                                            >
+                                                <a style={{ color: "blue" }}>{txHash}</a>
+                                            </Link>
+                                        )}
+                                    </div>
+                                    <div className="flex mt-10 justify-center">
                                         <button
                                             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                                             onClick={() => {
