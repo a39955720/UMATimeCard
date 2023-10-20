@@ -14,6 +14,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
     LZEndpointMock lZEndpointMock;
     address owner = 0x6Ec373C59C1f68B2C984640e63cb38f2E2d34f8C;
     uint256 fee = 0.5 ether;
+    string url = "https://github.com/a39955720/UMATimeCard";
 
     function setUp() public {
         vm.deal(TestAddress.account1, 10 ether);
@@ -66,7 +67,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
     function testCrossChainOperation() public {
         uint256 blocktimestamp = block.timestamp;
         vm.prank(TestAddress.account1);
-        umaTimeCardEntrance.send{value: fee}(0);
+        umaTimeCardEntrance.send{value: fee}(0, url);
 
         assertFalse(
             umaTimeCard.getCheckInData(TestAddress.account1)[0].isDispute
@@ -79,7 +80,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         timer.setCurrentTime(timer.getCurrentTime() + 120);
 
         vm.prank(TestAddress.account1);
-        umaTimeCardEntrance.send{value: fee}(1);
+        umaTimeCardEntrance.send{value: fee}(1, url);
 
         assertFalse(
             umaTimeCard.getCheckOutData(TestAddress.account1)[0].isDispute
@@ -101,15 +102,15 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
             "UMATimeCard__YouShouldCheckInFirst()"
         );
         vm.expectRevert(customError);
-        umaTimeCard.checkOut(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkOut(block.timestamp, TestAddress.account1, url);
 
-        umaTimeCard.checkIn(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkIn(block.timestamp, TestAddress.account1, url);
 
         customError = abi.encodeWithSignature(
             "UMATimeCard__YouShouldCheckOutFirst()"
         );
         vm.expectRevert(customError);
-        umaTimeCard.checkIn(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkIn(block.timestamp, TestAddress.account1, url);
         timer.setCurrentTime(timer.getCurrentTime() + 120);
         vm.stopPrank();
 
@@ -117,21 +118,21 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
             "UMATimeCard__YouCantCallThisFunction()"
         );
         vm.expectRevert(customError);
-        umaTimeCard.checkOut(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkOut(block.timestamp, TestAddress.account1, url);
 
         vm.prank(address(umaTimeCard));
-        umaTimeCard.checkOut(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkOut(block.timestamp, TestAddress.account1, url);
         timer.setCurrentTime(timer.getCurrentTime() + 120);
 
         vm.expectRevert(customError);
-        umaTimeCard.checkIn(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkIn(block.timestamp, TestAddress.account1, url);
     }
 
     function test_CheckInOutNoDispute() public {
         vm.startPrank(address(umaTimeCard));
 
         uint256 blocktimestamp = block.timestamp;
-        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1);
+        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1, url);
 
         assertFalse(
             umaTimeCard.getCheckInData(TestAddress.account1)[0].isDispute
@@ -145,7 +146,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         vm.warp(timer.getCurrentTime());
         console.log(block.timestamp);
 
-        umaTimeCard.checkOut(block.timestamp, TestAddress.account1);
+        umaTimeCard.checkOut(block.timestamp, TestAddress.account1, url);
 
         assertFalse(
             umaTimeCard.getCheckOutData(TestAddress.account1)[0].isDispute
@@ -166,11 +167,41 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         vm.stopPrank();
     }
 
+    function test_CheckInOrOutWithWrongDispute() public {
+        vm.startPrank(address(umaTimeCard));
+
+        uint256 blocktimestamp = block.timestamp;
+        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1, url);
+        vm.stopPrank();
+
+        OracleRequest memory oracleRequest = _disputeAndGetOracleRequest(
+            umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId,
+            defaultBond
+        );
+        _mockOracleResolved(address(mockOracle), oracleRequest, true);
+
+        assertTrue(
+            optimisticOracleV3.settleAndGetAssertionResult(
+                umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId
+            )
+        );
+
+        assertTrue(
+            umaTimeCard.getCheckInOutResult(
+                umaTimeCard.getCheckInData(TestAddress.account1)[0].assertionId
+            )
+        );
+        assertEq(
+            umaTimeCard.getCheckInData(TestAddress.account1)[0].timestamp,
+            blocktimestamp
+        );
+    }
+
     function test_CheckInOutWithCorrectDispute() public {
         vm.startPrank(address(umaTimeCard));
 
         uint256 blocktimestamp = block.timestamp;
-        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1);
+        umaTimeCard.checkIn(blocktimestamp, TestAddress.account1, url);
         vm.stopPrank();
 
         OracleRequest memory oracleRequest = _disputeAndGetOracleRequest(
@@ -198,7 +229,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         vm.startPrank(address(umaTimeCard));
 
         blocktimestamp = block.timestamp;
-        umaTimeCard.checkOut(blocktimestamp, TestAddress.account1);
+        umaTimeCard.checkOut(blocktimestamp, TestAddress.account1, url);
         vm.stopPrank();
 
         oracleRequest = _disputeAndGetOracleRequest(

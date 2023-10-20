@@ -18,11 +18,12 @@ contract UMATimeCardEntrance is NonblockingLzApp {
      *
      * @param checkInOrOut The type of check-in/out, 0 for check-in, 1 for check-out.
      */
-    function send(uint16 checkInOrOut) public payable {
+    function send(uint16 checkInOrOut, string memory _url) public payable {
         bytes memory payload = abi.encode(
             checkInOrOut,
             block.timestamp,
-            msg.sender
+            msg.sender,
+            _url
         );
 
         _lzSend(
@@ -45,12 +46,14 @@ contract UMATimeCardEntrance is NonblockingLzApp {
     // Estimates the fees required to send a time card transaction.
     function estimateFees(
         bytes calldata adapterParams,
-        uint16 checkInOrOut
+        uint16 checkInOrOut,
+        string memory url
     ) public view returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(
             checkInOrOut,
             block.timestamp,
-            msg.sender
+            msg.sender,
+            url
         );
         return
             lzEndpoint.estimateFees(

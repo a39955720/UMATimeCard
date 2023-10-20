@@ -15,6 +15,11 @@ contract DeployUMATimeCardEntrance is Script {
                 10121,
                 0x2cA20802fd1Fd9649bA8Aa7E50F0C82b479f35fe
             );
+        } else if (block.chainid == 534351) {
+            umaTimeCardEntrance = new UMATimeCardEntrance(
+                10121,
+                0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3
+            );
         }
         vm.stopBroadcast();
         return umaTimeCardEntrance;
