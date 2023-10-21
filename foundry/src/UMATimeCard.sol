@@ -59,7 +59,7 @@ contract UMATimeCard is NonblockingLzApp {
             revert UMATimeCard__YouShouldCheckOutFirst();
         }
 
-        // For test
+        // For test revert
         if (msg.sender != address(this)) {
             revert UMATimeCard__YouCantCallThisFunction();
         }
@@ -71,7 +71,13 @@ contract UMATimeCard is NonblockingLzApp {
         // If there are previous check-out data for the employee, settle the corresponding assertion
         if (s_checkOutData[_msgSender].length > 0) {
             uint256 index = s_checkOutData[_msgSender].length - 1;
-            if (s_checkOutData[_msgSender][index].isDispute == false) {
+            if (
+                s_checkOutData[_msgSender][index].isDispute == false ||
+                getCheckInOutResult(
+                    s_checkOutData[_msgSender][index].assertionId
+                ) ==
+                false
+            ) {
                 i_oov3.settleAndGetAssertionResult(
                     s_checkOutData[_msgSender][index].assertionId
                 );
@@ -97,7 +103,7 @@ contract UMATimeCard is NonblockingLzApp {
             address(this),
             address(this),
             address(0),
-            120,
+            180,
             i_defaultCurrency,
             bond,
             i_oov3.defaultIdentifier(),
@@ -129,7 +135,7 @@ contract UMATimeCard is NonblockingLzApp {
             revert UMATimeCard__YouShouldCheckInFirst();
         }
 
-        // For test
+        // For test revert
         if (msg.sender != address(this)) {
             revert UMATimeCard__YouCantCallThisFunction();
         }
@@ -140,7 +146,11 @@ contract UMATimeCard is NonblockingLzApp {
 
         // If there are previous check-in data for the employee, settle the corresponding assertion
         uint256 index = s_checkInData[_msgSender].length - 1;
-        if (s_checkInData[_msgSender][index].isDispute == false) {
+        if (
+            s_checkInData[_msgSender][index].isDispute == false ||
+            getCheckInOutResult(s_checkInData[_msgSender][index].assertionId) ==
+            false
+        ) {
             i_oov3.settleAndGetAssertionResult(
                 s_checkInData[_msgSender][index].assertionId
             );
@@ -148,7 +158,7 @@ contract UMATimeCard is NonblockingLzApp {
 
         // Generate the check-out message
         bytes memory checkOutMessage = abi.encodePacked(
-            "Check in at: ",
+            "Check out at: ",
             ClaimData.toUtf8BytesUint(_timestamp),
             " ,employee is 0x",
             ClaimData.toUtf8BytesAddress(_msgSender),
@@ -165,7 +175,7 @@ contract UMATimeCard is NonblockingLzApp {
             address(this),
             address(this),
             address(0),
-            120,
+            180,
             i_defaultCurrency,
             bond,
             i_oov3.defaultIdentifier(),

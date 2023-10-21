@@ -202,6 +202,11 @@
                 "internalType": "uint16",
                 "name": "checkInOrOut",
                 "type": "uint16"
+            },
+            {
+                "internalType": "string",
+                "name": "url",
+                "type": "string"
             }
         ],
         "name": "estimateFees",
@@ -523,6 +528,11 @@
                 "internalType": "uint16",
                 "name": "checkInOrOut",
                 "type": "uint16"
+            },
+            {
+                "internalType": "string",
+                "name": "_url",
+                "type": "string"
             }
         ],
         "name": "send",

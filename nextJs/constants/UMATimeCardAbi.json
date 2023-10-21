@@ -253,6 +253,11 @@
                 "internalType": "address",
                 "name": "_msgSender",
                 "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "_url",
+                "type": "string"
             }
         ],
         "name": "checkIn",
@@ -271,6 +276,11 @@
                 "internalType": "address",
                 "name": "_msgSender",
                 "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "_url",
+                "type": "string"
             }
         ],
         "name": "checkOut",

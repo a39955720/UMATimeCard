@@ -11,6 +11,9 @@ module.exports = {
             fontFamily: {
                 orbitron: ["Orbitron", "sans-serif"],
             },
+            padding: {
+                50: "16rem", // 添加一个名为 '30' 的 padding 值，对应 30 像素
+            },
         },
     },
     plugins: [],

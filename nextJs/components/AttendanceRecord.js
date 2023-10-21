@@ -8,7 +8,7 @@ export default function AttendanceRecord() {
     const [error, setError] = useState()
     const [checkInData, setCheckInData] = useState("0")
     const [checkOutData, setCheckOutData] = useState("0")
-    const umaTimeCardAddr = "0xcC5137B50789a83074689afa72531598a69bA287"
+    const umaTimeCardAddr = "0x7A6d02605f3291E9f60A5E048F5e6e7F05fd3e6a"
 
     const networks = {
         goerli: {

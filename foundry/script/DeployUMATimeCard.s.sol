@@ -10,9 +10,9 @@ contract DeployUMATimeCard is Script {
     function run() external returns (UMATimeCard) {
         vm.startBroadcast(deployerKey);
         UMATimeCard umaTimeCard = new UMATimeCard(
-            0x07865c6E87B9F70255377e024ace6630C1Eaa37F,
-            0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB,
-            0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23
+            0x328507DC29C95c170B56a1b3A758eB7a9E73455c, //currency
+            0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB, //optimisticOracleV3
+            0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23 //lzEndpoint
         );
         vm.stopBroadcast();
 
