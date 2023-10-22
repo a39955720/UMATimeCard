@@ -141,7 +141,7 @@ export default function Dashboard() {
         <div className="bg-gradient-to-br from-yellow-500 to-purple-500 flex flex-col min-h-screen">
             {isWeb3Enabled && chainId == "5001" /*|| chainId == "534351"*/ ? (
                 <>
-                    <div className="p-20 flex flex-row">
+                    <div className="mt-20 ml-20 flex flex-row">
                         <div class="flex items-center w-2/4">
                             <input
                                 type="text"
@@ -184,12 +184,14 @@ export default function Dashboard() {
                             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                                 <div className="bg-white p-5 rounded">
                                     <h2 className="text-2xl mb-4">Please enter proof of work document link.</h2>
-                                    <button
-                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded justify-center mt-4"
-                                        onClick={() => setShowModal_1(false)}
-                                    >
-                                        Close
-                                    </button>
+                                    <div className="flex mt-4 justify-center">
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                            onClick={() => setShowModal_1(false)}
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -230,7 +232,7 @@ export default function Dashboard() {
                                         )}
                                     </div>
                                     <div className="text-lg mt-5 ml-10">
-                                        It takes about 1~2 minutes to send the message.
+                                        It takes about 1~3 minutes to send the message.
                                     </div>
                                     <div className="text-lg mt-5 ml-10">
                                         Transaction hash:{" "}
@@ -259,6 +261,15 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         )}
+                    </div>
+                    <div className="text-lg mt-5 ml-20">
+                        *After completing the check-in or check-out, you must wait for the{" "}
+                        {
+                            <Link legacyBehavior href={`https://testnet.oracle.umaproject.org/`}>
+                                <a style={{ color: "blue" }}> Challenge period </a>
+                            </Link>
+                        }
+                        to pass before you can proceed with the next operation.
                     </div>
                     <Clock />
                 </>
