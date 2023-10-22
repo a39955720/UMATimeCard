@@ -72,7 +72,7 @@ contract UMATimeCard is NonblockingLzApp {
         if (s_checkOutData[_msgSender].length > 0) {
             uint256 index = s_checkOutData[_msgSender].length - 1;
             if (
-                s_checkOutData[_msgSender][index].isDispute == false ||
+                s_checkOutData[_msgSender][index].isDispute == false &&
                 getCheckInOutResult(
                     s_checkOutData[_msgSender][index].assertionId
                 ) ==
@@ -129,7 +129,7 @@ contract UMATimeCard is NonblockingLzApp {
     ) public {
         // Check if the check-out lock is enabled or if there are no previous check-in data
         if (
-            s_checkOutLock[_msgSender] == true ||
+            s_checkOutLock[_msgSender] == true &&
             s_checkInData[_msgSender].length == 0
         ) {
             revert UMATimeCard__YouShouldCheckInFirst();

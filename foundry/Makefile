@@ -62,4 +62,4 @@ ScrollEntrance:
 #    --num-of-optimizations 200 \
 #    --constructor-args $(cast abi-encode "constructor(uint256,address)" 10121 0x2cA20802fd1Fd9649bA8Aa7E50F0C82b479f35fe) \
 #    --chain-id 5001 \
-#    0x6DE687B141825B379527605b0Af38ea36D59527a src/UMATimeCardEntrance.sol:UMATimeCardEntrance
+#    0x7B5491fecFC4189E3d6A00e1d66fb62825C699bd src/UMATimeCardEntrance.sol:UMATimeCardEntrance

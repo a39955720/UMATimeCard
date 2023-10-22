@@ -112,9 +112,9 @@ export default function Dashboard() {
 
     async function updateUI() {
         if (chainId == "5001") {
-            setUMATimeCardEntranceAddr("0x6DE687B141825B379527605b0Af38ea36D59527a")
+            setUMATimeCardEntranceAddr("0x7B5491fecFC4189E3d6A00e1d66fb62825C699bd")
         } /*else if (chainId == "534351") {
-             setUMATimeCardEntranceAddr("0x851AF51305de3f184D1A12601907C1b7fe81EB83")
+             setUMATimeCardEntranceAddr("0x44e48E3E954Aa1193d084CE7B30632bCdD34ae92")
         }*/ else {
             setUMATimeCardEntranceAddr("0x0000000000000000000000000000000000000000")
         }
