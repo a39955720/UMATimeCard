@@ -11,7 +11,6 @@ export default function Dashboard() {
     const { isWeb3Enabled, chainId: chainIdHex, account } = useMoralis()
     const chainId = parseInt(chainIdHex)
     const [fees, setFees] = useState("0")
-    const [checkInOrOut, setCheckInOrOut] = useState("0")
     const [error, setError] = useState()
     const [showModal, setShowModal] = useState(false)
     const [showModal_1, setShowModal_1] = useState(false)
@@ -35,14 +34,26 @@ export default function Dashboard() {
     }
 
     const {
-        runContractFunction: send,
-        isLoading,
-        isFetching,
+        runContractFunction: checkIn,
+        isLoadingIn,
+        isFetchingIn,
     } = useWeb3Contract({
         abi: UMATimeCardEntranceAbi,
         contractAddress: umaTimeCardEntranceAddr,
-        functionName: "send",
-        params: { checkInOrOut: checkInOrOut, _url: url },
+        functionName: "checkIn",
+        params: { _url: url },
+        msgValue: fees,
+    })
+
+    const {
+        runContractFunction: checkOut,
+        isLoadingOut,
+        isFetchingOut,
+    } = useWeb3Contract({
+        abi: UMATimeCardEntranceAbi,
+        contractAddress: umaTimeCardEntranceAddr,
+        functionName: "checkOut",
+        params: { _url: url },
         msgValue: fees,
     })
 
@@ -80,13 +91,11 @@ export default function Dashboard() {
     }
 
     const _checkIn = async function () {
-        setCheckInOrOut(0)
-        await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
+        await checkIn({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
 
     const _checkOut = async function () {
-        setCheckInOrOut(1)
-        await send({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
+        await checkOut({ onSuccess: (tx) => handleSuccess(tx), onError: (error) => handleError(error) })
     }
 
     const handleSuccess = async function (tx) {
@@ -112,9 +121,9 @@ export default function Dashboard() {
 
     async function updateUI() {
         if (chainId == "5001") {
-            setUMATimeCardEntranceAddr("0x7B5491fecFC4189E3d6A00e1d66fb62825C699bd")
+            setUMATimeCardEntranceAddr("0xF2A6E8700560cb2be087B70101d73d9D8aBA075F")
         } /*else if (chainId == "534351") {
-             setUMATimeCardEntranceAddr("0x44e48E3E954Aa1193d084CE7B30632bCdD34ae92")
+             setUMATimeCardEntranceAddr("0x9acD3667CD0D52d3A987B71b7a98cb2e29e365b0")
         }*/ else {
             setUMATimeCardEntranceAddr("0x0000000000000000000000000000000000000000")
         }
@@ -135,7 +144,7 @@ export default function Dashboard() {
         return () => {
             clearInterval(interval)
         }
-    }, [isWeb3Enabled, checkInOrOut, chainId, account, url, txHash, _message])
+    }, [isWeb3Enabled, chainId, account, url, txHash, _message])
 
     return (
         <div className="bg-gradient-to-br from-yellow-500 to-purple-500 flex flex-col min-h-screen">
@@ -159,9 +168,9 @@ export default function Dashboard() {
                                     setShowModal_1(true)
                                 }
                             }}
-                            disabled={isLoading || isFetching}
+                            disabled={isLoadingIn || isFetchingIn}
                         >
-                            {isLoading || isFetching ? (
+                            {isLoadingIn || isFetchingIn ? (
                                 <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                             ) : (
                                 <span className="text-4xl font-orbitron">Check In</span>
@@ -175,9 +184,9 @@ export default function Dashboard() {
                                     setShowModal_1(true)
                                 }
                             }}
-                            disabled={isLoading || isFetching}
+                            disabled={isLoadingOut || isFetchingOut}
                         >
-                            {isLoading || isFetching ? (
+                            {isLoadingOut || isFetchingOut ? (
                                 <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                             ) : (
                                 <span className="text-4xl font-orbitron text-black">Check Out</span>

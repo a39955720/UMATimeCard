@@ -51,9 +51,9 @@ ScrollEntrance:
     # --constructor-args  $(cast abi-encode "constructor(uint256,address)" 10121 0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3) \
     # --verifier etherscan \
     # --verifier-url https://api-sepolia.scrollscan.dev/api \
-    # --etherscan-api-key $(SCROLL_ETHERSCAN_API_KEY) \
+    # --etherscan-api-key $SCROLL_ETHERSCAN_API_KEY \
     # --compiler-version "v0.8.16+commit.07a7930e" \
-    # 0x851AF51305de3f184D1A12601907C1b7fe81EB83 src/UMATimeCardEntrance.sol:UMATimeCardEntrance
+    # 0x9acD3667CD0D52d3A987B71b7a98cb2e29e365b0 src/UMATimeCardEntrance.sol:UMATimeCardEntrance
 
 # MantleVerify:
 # 	@forge verify-contract --verifier blockscout --watch \
@@ -62,4 +62,4 @@ ScrollEntrance:
 #    --num-of-optimizations 200 \
 #    --constructor-args $(cast abi-encode "constructor(uint256,address)" 10121 0x2cA20802fd1Fd9649bA8Aa7E50F0C82b479f35fe) \
 #    --chain-id 5001 \
-#    0x7B5491fecFC4189E3d6A00e1d66fb62825C699bd src/UMATimeCardEntrance.sol:UMATimeCardEntrance
+#    0xF2A6E8700560cb2be087B70101d73d9D8aBA075F src/UMATimeCardEntrance.sol:UMATimeCardEntrance

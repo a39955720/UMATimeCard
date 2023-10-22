@@ -67,7 +67,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
     function testCrossChainOperation() public {
         uint256 blocktimestamp = block.timestamp;
         vm.prank(TestAddress.account1);
-        umaTimeCardEntrance.send{value: fee}(0, url);
+        umaTimeCardEntrance.checkIn{value: fee}(url);
 
         assertFalse(
             umaTimeCard.getCheckInData(TestAddress.account1)[0].isDispute
@@ -80,7 +80,7 @@ contract UMATimeCardTest is CommonOptimisticOracleV3Test {
         timer.setCurrentTime(timer.getCurrentTime() + 120);
 
         vm.prank(TestAddress.account1);
-        umaTimeCardEntrance.send{value: fee}(1, url);
+        umaTimeCardEntrance.checkOut{value: fee}(url);
 
         assertFalse(
             umaTimeCard.getCheckOutData(TestAddress.account1)[0].isDispute

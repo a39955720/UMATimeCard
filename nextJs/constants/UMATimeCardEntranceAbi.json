@@ -194,14 +194,35 @@
     {
         "inputs": [
             {
+                "internalType": "string",
+                "name": "_url",
+                "type": "string"
+            }
+        ],
+        "name": "checkIn",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "_url",
+                "type": "string"
+            }
+        ],
+        "name": "checkOut",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "bytes",
                 "name": "adapterParams",
                 "type": "bytes"
-            },
-            {
-                "internalType": "uint16",
-                "name": "checkInOrOut",
-                "type": "uint16"
             },
             {
                 "internalType": "string",
@@ -518,24 +539,6 @@
             }
         ],
         "name": "retryMessage",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint16",
-                "name": "checkInOrOut",
-                "type": "uint16"
-            },
-            {
-                "internalType": "string",
-                "name": "_url",
-                "type": "string"
-            }
-        ],
-        "name": "send",
         "outputs": [],
         "stateMutability": "payable",
         "type": "function"
