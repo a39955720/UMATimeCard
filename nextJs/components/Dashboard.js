@@ -135,7 +135,7 @@ export default function Dashboard() {
         return () => {
             clearInterval(interval)
         }
-    }, [isWeb3Enabled, chainId, account, url, txHash, _message])
+    }, [isWeb3Enabled, checkInOrOut, chainId, account, url, txHash, _message])
 
     return (
         <div className="bg-gradient-to-br from-yellow-500 to-purple-500 flex flex-col min-h-screen">
