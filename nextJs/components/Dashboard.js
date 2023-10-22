@@ -171,6 +171,9 @@ export default function Dashboard() {
                             className="bg-white hover:bg-blue-700 text-white font-bold py-4 px-8 rounded ml-10"
                             onClick={async function () {
                                 await _checkOut()
+                                if (!url) {
+                                    setShowModal_1(true)
+                                }
                             }}
                             disabled={isLoading || isFetching}
                         >
